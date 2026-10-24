@@ -1,0 +1,26 @@
+name: mirror-vendor
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 4 * * 0'
+
+permissions:
+  contents: write
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - name: Mirror GitLab vendor branches
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          git clone --mirror https://gitlab.com/kaderbava/vendor_realme_RMX1971.git mirror.git
+          cd mirror.git
+          git push --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" '+refs/heads/*:refs/heads/*'
+          git push --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" '+refs/tags/*:refs/tags/*' || true
+          echo "mirrored branches:"
+          git for-each-ref --format='%(refname:short) %(objectname:short)' refs/heads
